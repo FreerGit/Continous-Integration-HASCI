@@ -11,6 +11,8 @@ build-type:     Simple
 library
   exposed-modules:
       Core
+      Docker
+      Sockets
   other-modules:
       Paths_HASCI
   hs-source-dirs:
