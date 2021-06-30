@@ -5,6 +5,7 @@ import RIO
 import qualified RIO.NonEmpty.Partial as NonEmpty.Partial
 import qualified Docker
 import qualified RIO.Map as Map
+import qualified System.Process.Typed as Process
 import Test.Hspec
 
 
@@ -54,6 +55,10 @@ runBuild docker build = do
 main :: IO ()
 main = hspec do
   docker <- runIO Docker.createService
-  describe "HASCI" do
+  beforeAll cleanupDocker $ describe "HASCI" do
     it "should run a build (success)" do
       testRunSuccess docker
+
+cleanupDocker :: IO ()
+cleanupDocker = void do
+  Process.readProcessStdout "docker rm -f $(docker ps -aq --filter \"label=HASCI\")"

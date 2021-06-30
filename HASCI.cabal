@@ -84,7 +84,7 @@ executable HASCI
     , yaml
   default-language: Haskell2010
 
-test-suite quad-test
+test-suite hasci-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:

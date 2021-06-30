@@ -47,7 +47,7 @@ executables:
     - HASCI
 
 tests:
-  quad-test:
+  hasci-test:
     main: Spec.hs
     source-dirs: test
     ghc-options:
