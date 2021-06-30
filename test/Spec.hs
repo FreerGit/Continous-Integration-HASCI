@@ -1,6 +1,7 @@
 module Main where
 
 import Core
+import Runner
 import RIO
 import qualified RIO.NonEmpty.Partial as NonEmpty.Partial
 import qualified Docker
@@ -25,7 +26,7 @@ testPipeline :: Pipeline
 testPipeline =
   makePipeline
     [ makeStep "first step" "ubuntu" ["date"]
-    , makeStep "second step" "ubuntu" ["umame -r"]
+    , makeStep "second step" "ubuntu" ["uname -r"]
     ]
 
 testBuild :: Build
@@ -36,28 +37,33 @@ testBuild =
     , completedSteps = mempty
     }
 
-testRunSuccess :: Docker.Service -> IO ()
-testRunSuccess docker = do
-  result <- runBuild docker testBuild
+testRunSuccess :: Runner.Service -> IO ()
+testRunSuccess runner = do
+  build <- runner.prepareBuild testPipeline
+  result <- runner.runBuild build
   result.state `shouldBe` BuildFinished BuildSucceeded
   Map.elems result.completedSteps `shouldBe` [StepSucceeded, StepSucceeded]
 
-runBuild :: Docker.Service -> Build -> IO Build
-runBuild docker build = do
-  newBuild <- Core.progress docker build
-  case newBuild.state of
-    BuildFinished _ ->
-      pure newBuild
-    _ -> do
-      threadDelay (1* 1000 * 1000)
-      runBuild docker newBuild
+testRunFailure :: Runner.Service -> IO ()
+testRunFailure runner = do
+  build <- runner.prepareBuild $ makePipeline
+              [ makeStep "Should fail" "ubuntu" ["exit 1"]
+              ]
+  result <- runner.runBuild build
+  result.state `shouldBe` BuildFinished BuildFailed
+  Map.elems result.completedSteps
+    `shouldBe` [StepFailed (Docker.ContainerExitCode 1)]
+
 
 main :: IO ()
 main = hspec do
   docker <- runIO Docker.createService
+  runner <- runIO $ Runner.createService docker
   beforeAll cleanupDocker $ describe "HASCI" do
     it "should run a build (success)" do
-      testRunSuccess docker
+      testRunSuccess runner
+    it "should run a build (failure)" do
+      testRunFailure runner
 
 cleanupDocker :: IO ()
 cleanupDocker = void do
