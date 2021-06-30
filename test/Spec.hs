@@ -4,6 +4,9 @@ import Core
 import RIO
 import qualified RIO.NonEmpty.Partial as NonEmpty.Partial
 import qualified Docker
+import qualified RIO.Map as Map
+import Test.Hspec
+
 
 makeStep :: Text -> Text -> [Text] -> Step
 makeStep name image commands =
@@ -32,5 +35,25 @@ testBuild =
     , completedSteps = mempty
     }
 
+testRunSuccess :: Docker.Service -> IO ()
+testRunSuccess docker = do
+  result <- runBuild docker testBuild
+  result.state `shouldBe` BuildFinished BuildSucceeded
+  Map.elems result.completedSteps `shouldBe` [StepSucceeded, StepSucceeded]
+
+runBuild :: Docker.Service -> Build -> IO Build
+runBuild docker build = do
+  newBuild <- Core.progress docker build
+  case newBuild.state of
+    BuildFinished _ ->
+      pure newBuild
+    _ -> do
+      threadDelay (1* 1000 * 1000)
+      runBuild docker newBuild
+
 main :: IO ()
-main = pure ()
+main = hspec do
+  docker <- runIO Docker.createService
+  describe "HASCI" do
+    it "should run a build (success)" do
+      testRunSuccess docker
