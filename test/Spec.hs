@@ -29,14 +29,6 @@ testPipeline =
     , makeStep "second step" "ubuntu" ["uname -r"]
     ]
 
-testBuild :: Build
-testBuild =
-  Build
-    { pipeline = testPipeline
-    , state = BuildReady
-    , completedSteps = mempty
-    }
-
 testRunSuccess :: Runner.Service -> IO ()
 testRunSuccess runner = do
   build <- runner.prepareBuild testPipeline

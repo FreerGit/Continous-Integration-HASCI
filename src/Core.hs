@@ -8,9 +8,9 @@ import qualified RIO.NonEmpty as NonEmpty
 import qualified Docker
 
 data Step = Step
-  { name :: StepName,
-    commands :: NonEmpty Text,
-    image :: Docker.Image
+  { name :: StepName
+  ,  commands :: NonEmpty Text
+  ,  image :: Docker.Image
   }
   deriving (Eq, Show)
 
@@ -20,9 +20,10 @@ data Pipeline = Pipeline
   deriving (Eq, Show)
 
 data Build = Build
-  { pipeline :: Pipeline,
-    state :: BuildState,
-    completedSteps :: Map StepName StepResult
+  { pipeline :: Pipeline
+  , state :: BuildState
+  , completedSteps :: Map StepName StepResult
+  , volume :: Docker.Volume
   }
   deriving (Eq, Show)
 
