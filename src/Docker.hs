@@ -8,9 +8,6 @@ import qualified Data.Aeson as Aeson
 import qualified Sockets
 import qualified Data.Time.Clock.POSIX as Time
 
-newtype Image = Image Text
-  deriving (Eq, Show)
-
 newtype ContainerExitCode = ContainerExitCode Int
   deriving (Eq, Show)
 
@@ -20,8 +17,6 @@ newtype ContainerId = ContainerId Text
 newtype Volume = Volume Text
   deriving (Eq, Show)
 
-imageToText :: Image -> Text
-imageToText (Image image) = image
 
 exitCodeToInt :: ContainerExitCode -> Int
 exitCodeToInt (ContainerExitCode code) = code
@@ -31,6 +26,12 @@ containerIdToText (ContainerId id) = id
 
 volumeToText :: Volume -> Text
 volumeToText (Volume v) = v
+
+data Image = Image { name :: Text, tag :: Text}
+  deriving (Eq, Show)
+
+imageToText :: Image -> Text
+imageToText image = image.name <> ":" <> image.tag
 
 data CreateContainerOptions
     = CreateContainerOptions
@@ -46,6 +47,7 @@ data Service
     , containerStatus :: ContainerId -> IO ContainerStatus
     , createVolume :: IO Volume
     , fetchLogs :: FetchLogsOptions -> IO ByteString
+    , pullImage :: Image -> IO ()
     }
 
 data ContainerStatus
@@ -156,6 +158,17 @@ fetchLogs_ makeReq options = do
   res <- HTTP.httpBS $ makeReq url
   pure $ HTTP.getResponseBody res
 
+pullImage_ :: RequestBuilder -> Image -> IO ()
+pullImage_ makeReq image = do
+  let url =
+        "/images/create?tag="
+          <> image.tag
+          <> "&fromImage="
+          <> image.name
+  let req = makeReq url
+            & HTTP.setRequestMethod "POST"
+  void $ HTTP.httpBS req
+
 createService :: IO Service
 createService = do
   manager <- Sockets.newManager "/var/run/docker.sock"
@@ -170,4 +183,5 @@ createService = do
     , containerStatus = containerStatus_ makeReq 
     , createVolume = createVolume_ makeReq
     , fetchLogs = fetchLogs_ makeReq
+    , pullImage = pullImage_ makeReq
     }

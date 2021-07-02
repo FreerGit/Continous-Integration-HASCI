@@ -46,5 +46,5 @@ runBuild_ docker hooks build = do
         BuildFinished _ ->
           pure newBuild
         _ -> do
-          threadDelay (1 * 1000 * 1000)
+          threadDelay (1 * 1000 * 500)
           loop newBuild newCollection
