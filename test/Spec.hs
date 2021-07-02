@@ -9,6 +9,7 @@ import qualified Docker
 import qualified RIO.Map as Map
 import qualified RIO.Set as Set
 import qualified System.Process.Typed as Process
+import qualified Data.Yaml as Yaml
 import Test.Hspec
 
 
@@ -97,6 +98,13 @@ testImagePull runner = do
   result.state `shouldBe` BuildFinished BuildSucceeded
   Map.elems result.completedSteps `shouldBe` [StepSucceeded]
 
+testYamlDecoding :: Runner.Service -> IO ()
+testYamlDecoding runner = do
+  pipeline <- Yaml.decodeFileThrow "test/pipeline.sample.yml"
+  build <- runner.prepareBuild pipeline
+  result <- runner.runBuild emptyHooks build
+  result.state `shouldBe` BuildFinished BuildSucceeded
+
 main :: IO ()
 main = hspec do
   docker <- runIO Docker.createService
@@ -112,6 +120,8 @@ main = hspec do
       testLogCollection runner
     it "should pull images" do 
       testImagePull runner
+    it "should decode pipelines from yml" do
+      testYamlDecoding runner
 
 cleanupDocker :: IO ()
 cleanupDocker = void do
