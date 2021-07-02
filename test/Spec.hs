@@ -3,14 +3,41 @@ module Main where
 import Core
 import Runner
 import RIO
+
 import qualified RIO.ByteString as ByteString
 import qualified RIO.NonEmpty.Partial as NonEmpty.Partial
-import qualified Docker
 import qualified RIO.Map as Map
 import qualified RIO.Set as Set
 import qualified System.Process.Typed as Process
 import qualified Data.Yaml as Yaml
+import qualified Control.Concurrent.Async as Async
+import qualified Docker
+import qualified Agent
+import qualified Server
+import qualified JobHandler
+import qualified JobHandler.Memory
 import Test.Hspec
+
+main :: IO ()
+main = hspec do 
+  docker <- runIO Docker.createService
+  runner <- runIO $ Runner.createService docker
+  parallel $ do
+    afterAll_ cleanupDocker $ describe "HASCI" do
+      it "should run a build (success)" do
+        testRunSuccess runner
+      it "should run a build (failure)" do
+        testRunFailure runner
+      it "should share workspace between steps" do
+        testSharedWorkspace docker runner
+      it "should collect logs" do
+        testLogCollection runner
+      it "should pull images" do 
+        testImagePull runner
+      it "should decode pipelines from yml" do
+        testYamlDecoding runner
+      it "should run server and agent" do
+        testServerAndAgent runner
 
 
 makeStep :: Text -> Text -> [Text] -> Step
@@ -105,24 +132,37 @@ testYamlDecoding runner = do
   result <- runner.runBuild emptyHooks build
   result.state `shouldBe` BuildFinished BuildSucceeded
 
-main :: IO ()
-main = hspec do 
-  docker <- runIO Docker.createService
-  runner <- runIO $ Runner.createService docker
-  parallel $ do
-    afterAll_ cleanupDocker $ describe "HASCI" do
-      it "should run a build (success)" do
-        testRunSuccess runner
-      it "should run a build (failure)" do
-        testRunFailure runner
-      it "should share workspace between steps" do
-        testSharedWorkspace docker runner
-      it "should collect logs" do
-        testLogCollection runner
-      it "should pull images" do 
-        testImagePull runner
-      it "should decode pipelines from yml" do
-        testYamlDecoding runner
+testServerAndAgent :: Runner.Service -> IO ()
+testServerAndAgent runner = do
+  handler <- JobHandler.Memory.createService
+  serverThread <- Async.async do
+    Server.run (Server.Config 9000) handler
+  Async.link serverThread
+
+  agentThread <- Async.async do
+    Agent.run (Agent.Config "http://localhost:9000") runner
+  Async.link agentThread
+
+  let pipeline = makePipeline
+        [ makeStep "agent-test" "busybox" ["echo hello", "echo from agent"]
+        ]
+  number <- handler.queueJob pipeline
+  checkBuild handler number
+  Async.cancel serverThread
+  Async.cancel agentThread
+  pure ()
+
+checkBuild :: JobHandler.Service -> BuildNumber -> IO ()
+checkBuild handler number = loop
+  where 
+    loop = do
+      Just job <- handler.findJob number
+      case job.state of
+        JobHandler.JobScheduled build -> do
+          case build.state of
+            BuildFinished s -> s `shouldBe` BuildSucceeded
+            _ -> loop
+        _ -> loop
 
 cleanupDocker :: IO ()
 cleanupDocker = void do
