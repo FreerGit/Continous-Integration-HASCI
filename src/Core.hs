@@ -7,6 +7,7 @@ import qualified RIO.Text as Text
 import qualified RIO.NonEmpty as NonEmpty
 import qualified Data.Time.Clock.POSIX as Time
 import qualified Data.Aeson as Aeson
+import qualified Codec.Serialise as Serialise
 import qualified Docker
 
 
@@ -14,44 +15,44 @@ data Step = Step
   { name :: StepName
   , commands :: NonEmpty Text
   , image :: Docker.Image
-  } deriving (Eq, Show, Generic, Aeson.FromJSON)
+  } deriving (Eq, Show, Generic, Aeson.FromJSON, Serialise.Serialise)
 
 data Pipeline = Pipeline
   { steps :: NonEmpty Step
-  } deriving (Eq, Show, Generic, Aeson.FromJSON)
+  } deriving (Eq, Show, Generic, Aeson.FromJSON, Serialise.Serialise)
 
 data Build = Build
   { pipeline :: Pipeline
   , state :: BuildState
   , completedSteps :: Map StepName StepResult
   , volume :: Docker.Volume
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic, Serialise.Serialise)
 
 data StepResult
   = StepFailed Docker.ContainerExitCode
   | StepSucceeded
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Serialise.Serialise)
 
 data BuildState
   = BuildReady
   | BuildRunning BuildRunningState
   | BuildFinished BuildResult
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Serialise.Serialise)
 
 newtype StepName = StepName Text
-  deriving (Eq, Show, Ord, Generic, Aeson.FromJSON)
+  deriving (Eq, Show, Ord, Generic, Aeson.FromJSON, Serialise.Serialise)
 
 data BuildResult
   = BuildSucceeded
   | BuildFailed
   | BuildUnexpectedState Text
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Serialise.Serialise)
 
 data BuildRunningState
   = BuildRunningState
   { step :: StepName
   , container :: Docker.ContainerId
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic, Serialise.Serialise)
 
 type LogCollection = Map StepName CollectionStatus
 
@@ -64,7 +65,13 @@ data CollectionStatus
 data Log = Log
   { output :: ByteString
   , step :: StepName
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic, Serialise.Serialise)
+
+newtype BuildNumber = BuildNumber Int
+  deriving (Eq, Show, Generic, Serialise.Serialise)
+
+buildNumberToInt :: BuildNumber -> Int
+buildNumberToInt (BuildNumber n) = n
 
 stepNameToText :: StepName -> Text
 stepNameToText (StepName step) = step

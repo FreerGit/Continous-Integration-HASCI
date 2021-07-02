@@ -9,15 +9,16 @@ import qualified Sockets
 import qualified Data.Time.Clock.POSIX as Time
 import qualified RIO.Text as Text
 import qualified RIO.Text.Partial as Text.Partial
+import qualified Codec.Serialise as Serialise
 
 newtype ContainerExitCode = ContainerExitCode Int
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Serialise.Serialise)
 
 newtype ContainerId = ContainerId Text
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Serialise.Serialise)
 
 newtype Volume = Volume Text
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Serialise.Serialise)
 
 
 exitCodeToInt :: ContainerExitCode -> Int
@@ -30,7 +31,7 @@ volumeToText :: Volume -> Text
 volumeToText (Volume v) = v
 
 data Image = Image { name :: Text, tag :: Text}
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Serialise.Serialise)
 
 instance Aeson.FromJSON Image where
   parseJSON = Aeson.withText "parse-image" $ \image -> do
