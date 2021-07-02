@@ -106,22 +106,23 @@ testYamlDecoding runner = do
   result.state `shouldBe` BuildFinished BuildSucceeded
 
 main :: IO ()
-main = hspec do
+main = hspec do 
   docker <- runIO Docker.createService
   runner <- runIO $ Runner.createService docker
-  beforeAll cleanupDocker $ describe "HASCI" do
-    it "should run a build (success)" do
-      testRunSuccess runner
-    it "should run a build (failure)" do
-      testRunFailure runner
-    it "should share workspace between steps" do
-      testSharedWorkspace docker runner
-    it "should collect logs" do
-      testLogCollection runner
-    it "should pull images" do 
-      testImagePull runner
-    it "should decode pipelines from yml" do
-      testYamlDecoding runner
+  parallel $ do
+    afterAll_ cleanupDocker $ describe "HASCI" do
+      it "should run a build (success)" do
+        testRunSuccess runner
+      it "should run a build (failure)" do
+        testRunFailure runner
+      it "should share workspace between steps" do
+        testSharedWorkspace docker runner
+      it "should collect logs" do
+        testLogCollection runner
+      it "should pull images" do 
+        testImagePull runner
+      it "should decode pipelines from yml" do
+        testYamlDecoding runner
 
 cleanupDocker :: IO ()
 cleanupDocker = void do
