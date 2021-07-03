@@ -1,0 +1,15 @@
+{
+  "ref": "refs/heads/main",
+  "repository": {
+    "id": 7451946651,
+    "name": "hasci-pipeline-test",
+    "full_name": "freergit/hasci-pipeline-test"
+  },
+  "head_commit": {
+    "id": "f0859b49d1700964fa18a7463412d75d4440b367",
+    "message": "Update README.md",
+    "author": {
+      "username": "Fredrik Eriksson"
+    }
+  }
+}

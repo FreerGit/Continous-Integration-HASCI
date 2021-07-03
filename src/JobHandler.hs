@@ -16,6 +16,12 @@ data JobState
   | JobScheduled Build
   deriving (Eq, Show)
 
+data CommitInfo
+  = CommitInfo
+    { sha :: Text
+    , repo :: Text
+    } deriving (Eq, Show)
+
 data Service
   = Service
   { queueJob :: Pipeline -> IO BuildNumber

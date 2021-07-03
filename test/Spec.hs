@@ -11,6 +11,9 @@ import qualified RIO.Set as Set
 import qualified System.Process.Typed as Process
 import qualified Data.Yaml as Yaml
 import qualified Control.Concurrent.Async as Async
+import qualified Data.Aeson as Aeson
+import qualified Network.HTTP.Simple as HTTP
+import qualified RIO.HashMap as HashMap
 import qualified Docker
 import qualified Agent
 import qualified Server
@@ -22,23 +25,24 @@ main :: IO ()
 main = hspec do 
   docker <- runIO Docker.createService
   runner <- runIO $ Runner.createService docker
-  parallel $ do
-    afterAll_ cleanupDocker $ describe "HASCI" do
-      it "should run a build (success)" do
-        testRunSuccess runner
-      it "should run a build (failure)" do
-        testRunFailure runner
-      it "should share workspace between steps" do
-        testSharedWorkspace docker runner
-      it "should collect logs" do
-        testLogCollection runner
-      it "should pull images" do 
-        testImagePull runner
-      it "should decode pipelines from yml" do
-        testYamlDecoding runner
-      it "should run server and agent concurrently" do
-        testServerAndAgent runner
-
+  -- parallel $ do
+  afterAll_ cleanupDocker $ describe "HASCI" do
+    -- it "should run a build (success)" do
+    --   testRunSuccess runner
+    -- it "should run a build (failure)" do
+    --   testRunFailure runner
+    -- it "should share workspace between steps" do
+    --   testSharedWorkspace docker runner
+    -- it "should collect logs" do
+    --   testLogCollection runner
+    -- it "should pull images" do 
+    --   testImagePull runner
+    -- it "should decode pipelines from yml" do
+    --   testYamlDecoding runner
+    -- it "should run server and agent concurrently" do
+    --   testServerAndAgent runner
+    it "should process github webhook" do
+      testWebhookTrigger runner
 
 makeStep :: Text -> Text -> [Text] -> Step
 makeStep name image commands =
@@ -136,7 +140,34 @@ testYamlDecoding runner = do
   result.state `shouldBe` BuildFinished BuildSucceeded
 
 testServerAndAgent :: Runner.Service -> IO ()
-testServerAndAgent runner = do
+testServerAndAgent = do
+  runServerAndAgent $ \handler -> do
+    let pipeline = makePipeline
+          [ makeStep "agent-test" "busybox" ["echo hello", "echo from agent"]
+          , makeStep "agent-test" "busybox" ["echo hello", "echo from agent"]
+          ]
+    number <- handler.queueJob pipeline
+    checkBuild handler number
+
+testWebhookTrigger :: Runner.Service -> IO ()
+testWebhookTrigger = 
+  runServerAndAgent $ \handler -> do
+    base <- HTTP.parseRequest "http://localhost:9000"
+    let req =
+          base
+            & HTTP.setRequestMethod "POST"
+            & HTTP.setRequestPath "/webhook/github"
+            & HTTP.setRequestBodyFile "test/github-payload.sample.json"
+    res <- HTTP.httpBS req
+    traceShowIO res
+    traceShowIO $ HTTP.getResponseBody res
+    let Right (Aeson.Object build) = 
+          Aeson.eitherDecodeStrict $ HTTP.getResponseBody res
+    let Just (Aeson.Number number) = HashMap.lookup "number" build
+    checkBuild handler $ Core.BuildNumber (round number)
+
+runServerAndAgent :: (JobHandler.Service -> IO ()) -> Runner.Service -> IO ()
+runServerAndAgent callback runner = do
   handler <- JobHandler.Memory.createService
   serverThread <- Async.async do
     Server.run (Server.Config 9000) handler
@@ -146,23 +177,10 @@ testServerAndAgent runner = do
     Agent.run (Agent.Config "http://localhost:9000" "agent1") runner
   Async.link agentThread
 
-  agentThread2 <- Async.async do
-    Agent.run (Agent.Config "http://localhost:9000" "agent2") runner
-  Async.link agentThread
-
-  let pipeline = makePipeline
-        [ makeStep "agent-test" "busybox" ["echo hello", "echo from agent"]
-        , makeStep "agent-test" "busybox" ["echo hello", "echo from agent"]
-        ]
-  number <- handler.queueJob pipeline
-  checkBuild handler number
-  number2 <- handler.queueJob pipeline
-  checkBuild handler number2
-
+  callback handler
   Async.cancel serverThread
   Async.cancel agentThread
-  Async.cancel agentThread2
-  pure ()
+  
 
 checkBuild :: JobHandler.Service -> BuildNumber -> IO ()
 checkBuild handler number = loop
