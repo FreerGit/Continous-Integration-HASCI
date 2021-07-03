@@ -36,7 +36,7 @@ main = hspec do
         testImagePull runner
       it "should decode pipelines from yml" do
         testYamlDecoding runner
-      it "should run server and agent" do
+      it "should run server and agent concurrently" do
         testServerAndAgent runner
 
 
@@ -63,6 +63,7 @@ emptyHooks :: Runner.Hooks
 emptyHooks =
   Runner.Hooks
     { logCollected = \_ -> pure ()
+    , buildUpdated = \_ -> pure ()
     }
 
 testRunSuccess :: Runner.Service -> IO ()
@@ -103,7 +104,9 @@ testLogCollection runner = do
           case ByteString.breakSubstring word log.output of
             (_, "") -> pure ()
             _ -> modifyMVar_ expected (pure . Set.delete word)
-  let hooks = Runner.Hooks { logCollected = onLog }
+  let hooks = Runner.Hooks { logCollected = onLog
+                           , buildUpdated = \_ -> pure () 
+                           }
 
   build <- runner.prepareBuild $ makePipeline 
               [ makeStep "Many steps" "ubuntu" ["echo hello", "sleep 2", "echo world"]
@@ -140,16 +143,25 @@ testServerAndAgent runner = do
   Async.link serverThread
 
   agentThread <- Async.async do
-    Agent.run (Agent.Config "http://localhost:9000") runner
+    Agent.run (Agent.Config "http://localhost:9000" "agent1") runner
+  Async.link agentThread
+
+  agentThread2 <- Async.async do
+    Agent.run (Agent.Config "http://localhost:9000" "agent2") runner
   Async.link agentThread
 
   let pipeline = makePipeline
         [ makeStep "agent-test" "busybox" ["echo hello", "echo from agent"]
+        , makeStep "agent-test" "busybox" ["echo hello", "echo from agent"]
         ]
   number <- handler.queueJob pipeline
   checkBuild handler number
+  number2 <- handler.queueJob pipeline
+  checkBuild handler number2
+
   Async.cancel serverThread
   Async.cancel agentThread
+  Async.cancel agentThread2
   pure ()
 
 checkBuild :: JobHandler.Service -> BuildNumber -> IO ()

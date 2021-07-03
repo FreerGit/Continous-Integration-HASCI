@@ -23,3 +23,4 @@ run config handler =
       Scotty.liftAndCatchIO do
         handler.processMsg msg
       Scotty.json ("message processed" :: Text)
+      
