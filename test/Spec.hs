@@ -41,10 +41,10 @@ main = hspec do
         testYamlDecoding runner
       it "should run server and agent concurrently" do
         testServerAndAgent runner
+      it "should process github webhook" do
+        testWebhookTrigger runner
 
-  afterAll_ cleanupDocker $ describe "HASCI" do
-    it "should process github webhook" do
-      testWebhookTrigger runner
+
 
 makeStep :: Text -> Text -> [Text] -> Step
 makeStep name image commands =
@@ -143,7 +143,7 @@ testYamlDecoding runner = do
 
 testServerAndAgent :: Runner.Service -> IO ()
 testServerAndAgent = do
-  runServerAndAgent $ \handler -> do
+  runServerAndAgent 9000 $ \handler -> do
     let pipeline = makePipeline
           [ makeStep "agent-test" "busybox" ["echo hello", "echo from agent"]
           , makeStep "agent-test" "busybox" ["echo hello", "echo from agent"]
@@ -153,8 +153,8 @@ testServerAndAgent = do
 
 testWebhookTrigger :: Runner.Service -> IO ()
 testWebhookTrigger = 
-  runServerAndAgent $ \handler -> do
-    base <- HTTP.parseRequest "http://localhost:9000"
+  runServerAndAgent 9001 $ \handler -> do
+    base <- HTTP.parseRequest "http://localhost:9001"
     let req =
           base
             & HTTP.setRequestMethod "POST"
@@ -166,18 +166,18 @@ testWebhookTrigger =
     let Just (Aeson.Number number) = HashMap.lookup "number" build
     checkBuild handler $ Core.BuildNumber (round number)
 
-runServerAndAgent :: (JobHandler.Service -> IO ()) -> Runner.Service -> IO ()
-runServerAndAgent callback runner = do
+runServerAndAgent :: Int -> (JobHandler.Service -> IO ()) -> Runner.Service -> IO ()
+runServerAndAgent port callback runner = do
   handler <- JobHandler.Memory.createService
   serverThread <- Async.async do
-    Server.run (Server.Config 9000) handler
+    Server.run (Server.Config port) handler
   Async.link serverThread
 
-  -- Just to skip annoying logs, wait for server to start 500ms
-  threadDelay (1 * 1000 * 500) 
+  -- Just to skip annoying logs, wait for server to start 200ms
+  threadDelay (1 * 1000 * 200) 
 
   agentThread <- Async.async do
-    Agent.run (Agent.Config "http://localhost:9000" "agent1") runner
+    Agent.run (Agent.Config ("http://localhost:" <> show port) "agent1") runner
   Async.link agentThread
 
   callback handler

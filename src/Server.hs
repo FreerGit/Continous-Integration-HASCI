@@ -7,6 +7,8 @@ import qualified Web.Scotty as Scotty
 import qualified Codec.Serialise as Serialise
 import qualified Data.Aeson as Aeson
 import qualified RIO.NonEmpty as NonEmpty
+import qualified RIO.Map as Map
+import qualified Network.HTTP.Types as HTTP.Types
 import qualified JobHandler
 import qualified Github
 
@@ -44,4 +46,69 @@ run config handler =
           [ ("number", Aeson.toJSON $ Core.buildNumberToInt number)
           , ("status", "job queued")
           ]
-      
+
+    Scotty.get "/build/:number" do
+      number <- fmap BuildNumber (Scotty.param "number")
+      job <- Scotty.liftAndCatchIO
+        (handler.findJob number) >>= \case
+          Nothing -> Scotty.raiseStatus HTTP.Types.status404 
+            "Build not found"
+          Just jobFound -> pure jobFound
+      Scotty.json $ jobToJSON number job
+
+    Scotty.get "/bulid/:number/step/:step/logs" do
+      number <- fmap BuildNumber (Scotty.param "number")
+      step <- fmap StepName (Scotty.param "step")
+      log <- Scotty.liftAndCatchIO $ handler.fetchLogs number step
+      Scotty.raw $ fromStrictBytes $ fromMaybe "" log
+
+
+jobToJSON :: BuildNumber -> JobHandler.Job -> Aeson.Value
+jobToJSON number job = 
+  Aeson.object
+    [ ("number", Aeson.toJSON $ Core.buildNumberToInt number)
+    , ("state", Aeson.toJSON $ jobStateToText job.state)
+    , ("steps", Aeson.toJSON steps)
+    ]
+  where
+    steps = fmap encodeName job.pipeline.steps 
+    build = case job.state of
+      JobHandler.JobQueued -> Nothing
+      JobHandler.JobAssigned -> Nothing
+      JobHandler.JobScheduled b -> Just b
+    encodeName = \step ->
+      Aeson.object
+        [ ("name", Aeson.String $ Core.stepNameToText step.name)
+        , ("state", Aeson.String $ case build of
+            Just b -> stepStateToText b step
+            Nothing -> "ready"
+          )
+        ]
+
+jobStateToText :: JobHandler.JobState -> Text
+jobStateToText = \case
+  JobHandler.JobQueued -> "queued"
+  JobHandler.JobAssigned -> "assigned"
+  JobHandler.JobScheduled j -> case j.state of
+    BuildReady -> "ready"
+    BuildRunning _ -> "running"
+    BuildFinished result -> case result of
+      BuildSucceeded -> "build succeeded"
+      BuildFailed -> "build failed"
+      BuildUnexpectedState _ -> "unexpected state"
+  
+stepStateToText :: Build -> Step -> Text
+stepStateToText build step =
+  case build.state of
+    BuildRunning s -> 
+      if s.step == step.name
+        then "running"
+        else stepNotRunning
+    _ -> stepNotRunning
+  where
+    stepNotRunning = case Map.lookup step.name build.completedSteps of
+      Just StepSucceeded -> "succeeded"
+      Just (StepFailed _) -> "failed"
+      Nothing -> case build.state of
+        BuildFinished _ -> "skipped"
+        _ -> "ready"
