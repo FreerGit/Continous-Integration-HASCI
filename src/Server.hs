@@ -61,6 +61,11 @@ run config handler =
       step <- fmap StepName (Scotty.param "step")
       log <- Scotty.liftAndCatchIO $ handler.fetchLogs number step
       Scotty.raw $ fromStrictBytes $ fromMaybe "" log
+    
+    Scotty.get "/build" do
+      jobs <- Scotty.liftAndCatchIO do
+        handler.latestJobs
+      Scotty.json $ fmap (\(number,job) -> jobToJSON number job) jobs
 
 
 jobToJSON :: BuildNumber -> JobHandler.Job -> Aeson.Value

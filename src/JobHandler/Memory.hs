@@ -36,6 +36,9 @@ createService = do
     , fetchLogs = \number step -> STM.atomically do
           s <- STM.readTVar state
           pure $ fetchLogs_ number step s
+    , latestJobs = STM.atomically do
+          s <- STM.readTVar state
+          pure $ latestJobs_ s
     }
 
 queueJob_ :: Pipeline -> State -> (BuildNumber, State)
@@ -82,3 +85,6 @@ processMsg_ msg state = case msg of
 fetchLogs_ :: BuildNumber -> StepName -> State -> Maybe ByteString
 fetchLogs_ number step state =
   Map.lookup (number, step) state.logs 
+
+latestJobs_ :: State -> [(BuildNumber, JobHandler.Job)]
+latestJobs_ state = List.reverse $ Map.toList state.jobs
