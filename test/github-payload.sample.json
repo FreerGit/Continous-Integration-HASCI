@@ -2,14 +2,14 @@
   "ref": "refs/heads/main",
   "repository": {
     "id": 7451946651,
-    "name": "hasci-pipeline-test",
-    "full_name": "freergit/hasci-pipeline-test"
+    "name": "HASCI-pipeline-test",
+    "full_name": "FreerGit/HASCI-pipeline-test"
   },
   "head_commit": {
-    "id": "f0859b49d1700964fa18a7463412d75d4440b367",
+    "id": "main",
     "message": "Update README.md",
     "author": {
-      "username": "Fredrik Eriksson"
+      "username": "FreerGit"
     }
   }
 }

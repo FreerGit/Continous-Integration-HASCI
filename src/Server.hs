@@ -34,11 +34,7 @@ run config handler =
       body <- Scotty.body
       number <- Scotty.liftAndCatchIO do
           info <- Github.parsePushEvent (toStrictBytes body)
-          traceShowIO info
           pipeline <- Github.fetchRemotePipeline info
-          traceShowIO "dafdsafsd "
-          traceShowIO pipeline
-          traceShowIO "fdsfdsfsdfdsfdsfsd"
           let step = Github.createCloneStep info
           handler.queueJob $ pipeline
             { steps = NonEmpty.cons step pipeline.steps

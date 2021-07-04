@@ -159,9 +159,7 @@ testWebhookTrigger =
             & HTTP.setRequestPath "/webhook/github"
             & HTTP.setRequestBodyFile "test/github-payload.sample.json"
     res <- HTTP.httpBS req
-    traceShowIO res
-    traceShowIO $ HTTP.getResponseBody res
-    let Right (Aeson.Object build) = 
+    let Right (Aeson.Object build) =
           Aeson.eitherDecodeStrict $ HTTP.getResponseBody res
     let Just (Aeson.Number number) = HashMap.lookup "number" build
     checkBuild handler $ Core.BuildNumber (round number)
@@ -190,6 +188,7 @@ checkBuild handler number = loop
       case job.state of
         JobHandler.JobScheduled build -> do
           case build.state of
+            
             BuildFinished s -> s `shouldBe` BuildSucceeded
             _ -> loop
         _ -> loop

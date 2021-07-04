@@ -58,6 +58,7 @@ runCommand config runner = \case
 
 sendMessage :: Config -> Msg -> IO ()
 sendMessage config msg = do
+  traceShowIO msg
   base <- HTTP.parseRequest config.endpoint
   let body = Serialise.serialise msg
   let req = base

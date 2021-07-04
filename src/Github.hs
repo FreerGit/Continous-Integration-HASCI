@@ -37,15 +37,13 @@ fetchRemotePipeline info = do
   let path = "/repos/" <> info.repo <> "/contents/.hasci.yml"
   let req = endpoint
           & HTTP.setRequestPath (encodeUtf8 path)
+          & HTTP.setRequestSecure True
           & HTTP.addToRequestQueryString [("ref", Just $ encodeUtf8 
               info.sha)]
-          & HTTP.addRequestHeader "User-Agent" "HASCI"
+          & HTTP.addRequestHeader "User-Agent" "FreerGit"
           & HTTP.addRequestHeader "Accept" 
               "application/vnd.github.v3.raw" -- Only fetch raw file 
   res <- HTTP.httpBS req
-  traceShowIO "here"
-  traceShowIO res
-  traceShowIO "there"
   Yaml.decodeThrow $ HTTP.getResponseBody res
 
 createCloneStep :: JobHandler.CommitInfo -> Step
