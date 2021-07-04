@@ -25,22 +25,24 @@ main :: IO ()
 main = hspec do 
   docker <- runIO Docker.createService
   runner <- runIO $ Runner.createService docker
-  -- parallel $ do
+  parallel $ do
+    afterAll_ cleanupDocker $ describe "HASCI" do
+      it "should run a build (success)" do
+        testRunSuccess runner
+      it "should run a build (failure)" do
+        testRunFailure runner
+      it "should share workspace between steps" do
+        testSharedWorkspace docker runner
+      it "should collect logs" do
+        testLogCollection runner
+      it "should pull images" do 
+        testImagePull runner
+      it "should decode pipelines from yml" do
+        testYamlDecoding runner
+      it "should run server and agent concurrently" do
+        testServerAndAgent runner
+
   afterAll_ cleanupDocker $ describe "HASCI" do
-    -- it "should run a build (success)" do
-    --   testRunSuccess runner
-    -- it "should run a build (failure)" do
-    --   testRunFailure runner
-    -- it "should share workspace between steps" do
-    --   testSharedWorkspace docker runner
-    -- it "should collect logs" do
-    --   testLogCollection runner
-    -- it "should pull images" do 
-    --   testImagePull runner
-    -- it "should decode pipelines from yml" do
-    --   testYamlDecoding runner
-    -- it "should run server and agent concurrently" do
-    --   testServerAndAgent runner
     it "should process github webhook" do
       testWebhookTrigger runner
 
@@ -170,6 +172,9 @@ runServerAndAgent callback runner = do
   serverThread <- Async.async do
     Server.run (Server.Config 9000) handler
   Async.link serverThread
+
+  -- Just to skip annoying logs, wait for server to start 500ms
+  threadDelay (1 * 1000 * 500) 
 
   agentThread <- Async.async do
     Agent.run (Agent.Config "http://localhost:9000" "agent1") runner
