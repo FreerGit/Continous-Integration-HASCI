@@ -8,7 +8,6 @@ import qualified RIO.ByteString as ByteString
 import qualified RIO.NonEmpty.Partial as NonEmpty.Partial
 import qualified RIO.Map as Map
 import qualified RIO.Set as Set
-import qualified System.Process.Typed as Process
 import qualified Data.Yaml as Yaml
 import qualified Control.Concurrent.Async as Async
 import qualified Data.Aeson as Aeson
