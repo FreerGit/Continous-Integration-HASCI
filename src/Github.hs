@@ -9,6 +9,7 @@ import qualified Data.Aeson.Types as Aeson.Types
 import qualified Data.Yaml as Yaml
 import qualified Network.HTTP.Simple as HTTP
 import qualified RIO.NonEmpty.Partial as NonEmpty.Partial
+import qualified RIO.Text as Text
 import qualified JobHandler
 import qualified Docker
 
@@ -18,10 +19,17 @@ parsePushEvent body = do
         commit <- event .: "head_commit"
         sha <- commit .: "id"
         repo <- event .: "repository" >>= \r -> r .: "full_name"
+        branch <- event .: "ref" <&> \ref ->
+          Text.dropPrefix "refs/heads/" ref
+        message <- commit .: "message"
+        author <- commit .: "author" >>= \a -> a .: "username"
 
         pure JobHandler.CommitInfo
           { sha = sha
           , repo = repo
+          , branch = branch
+          , message = message
+          , author = author
           }
   let result = do
         value <- Aeson.eitherDecodeStrict body
