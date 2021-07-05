@@ -26,7 +26,7 @@ main = hspec do
   docker <- runIO Docker.createService
   runner <- runIO $ Runner.createService docker
   parallel $ do
-    afterAll_ cleanupDocker $ describe "HASCI" do
+    afterAll_ Docker.cleanupDocker $ describe "HASCI" do
       it "should run a build (success)" do
         testRunSuccess runner
       it "should run a build (failure)" do
@@ -204,8 +204,4 @@ checkBuild handler number = loop
             _ -> loop
         _ -> loop
 
-cleanupDocker :: IO ()
-cleanupDocker = void do
-  Process.readProcessStdout "docker rm -f $(docker ps -aq --filter \"label=HASCI\")"
-  Process.readProcessStdout 
-    "docker volume rm -f $(docker volume ls -q --filter \"label=HASCI\")"
+

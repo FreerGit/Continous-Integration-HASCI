@@ -10,6 +10,7 @@ import qualified Data.Time.Clock.POSIX as Time
 import qualified RIO.Text as Text
 import qualified RIO.Text.Partial as Text.Partial
 import qualified Codec.Serialise as Serialise
+import qualified System.Process.Typed as Process
 
 newtype ContainerExitCode = ContainerExitCode Int
   deriving (Eq, Show, Generic, Serialise.Serialise)
@@ -78,6 +79,12 @@ data FetchLogsOptions
     , since :: Time.POSIXTime
     , until :: Time.POSIXTime
     }
+
+cleanupDocker :: IO ()
+cleanupDocker = void do
+  Process.readProcessStdout "docker rm -f $(docker ps -aq --filter \"label=HASCI\")"
+  Process.readProcessStdout 
+    "docker volume rm -f $(docker volume ls -q --filter \"label=HASCI\")"
 
 createContainer_ :: RequestBuilder -> CreateContainerOptions -> IO ContainerId
 createContainer_ makeReq options = do
