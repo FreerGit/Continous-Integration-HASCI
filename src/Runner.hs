@@ -45,7 +45,8 @@ runBuild_ docker hooks build = do
       newBuild <- Core.progress docker build
       hooks.buildUpdated newBuild
       case newBuild.state of
-        BuildFinished _ ->
+        BuildFinished _ -> do
+          Docker.cleanupDocker
           pure newBuild
         _ -> do
           threadDelay (1 * 1000 * 500)

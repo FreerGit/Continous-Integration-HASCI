@@ -130,8 +130,7 @@ progress docker build =
         Docker.ContainerOther other -> do
           let s = BuildUnexpectedState other
           pure build { state = BuildFinished s }
-    BuildFinished _ -> do
-      pure build
+    BuildFinished _ -> pure build
 
 
 initLogCollection :: Pipeline -> LogCollection
