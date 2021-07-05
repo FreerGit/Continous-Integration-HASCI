@@ -53,8 +53,16 @@ runCommand config runner = \case
           , buildUpdated = \build -> do
               sendMessage config $ BuildUpdated config.name number build
           }
+
+    let n = Core.displayBuildNumber number
+    Logger.infoM ("HASCI." <> (nameToString config.name)) $  
+      "Starting Build: " <> n
+
     build <- runner.prepareBuild pipeline
     void $ runner.runBuild hooks build
+
+    Logger.infoM ("HASCI." <> (nameToString config.name)) $ 
+      "Finished build: " <> n
 
 sendMessage :: Config -> Msg -> IO ()
 sendMessage config msg = do
@@ -65,3 +73,6 @@ sendMessage config msg = do
           & HTTP.setRequestPath "/agent/send"
           & HTTP.setRequestBodyLBS body
   void $ HTTP.httpBS req
+
+nameToString :: Name -> String
+nameToString (Name name) = name

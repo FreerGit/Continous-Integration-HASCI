@@ -183,3 +183,6 @@ runCollection docker collectUntil collection = do
                 }
         output <- docker.fetchLogs options
         pure [Log {step = step, output = output}]
+
+displayBuildNumber :: BuildNumber -> String
+displayBuildNumber number = "#" <> show (buildNumberToInt number)

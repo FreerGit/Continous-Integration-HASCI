@@ -10,6 +10,7 @@ import qualified RIO.NonEmpty as NonEmpty
 import qualified RIO.Map as Map
 import qualified Network.HTTP.Types as HTTP.Types
 import qualified Network.Wai.Middleware.Cors as Cors
+import qualified System.Log.Logger as Logger
 import qualified JobHandler
 import qualified Github
 
@@ -37,12 +38,17 @@ run config handler =
     Scotty.post "/webhook/github" do
       body <- Scotty.body
       number <- Scotty.liftAndCatchIO do
-          info <- Github.parsePushEvent (toStrictBytes body)
-          pipeline <- Github.fetchRemotePipeline info
-          let step = Github.createCloneStep info
-          handler.queueJob info $ pipeline
-            { steps = NonEmpty.cons step pipeline.steps
-            }
+        info <- Github.parsePushEvent (toStrictBytes body)
+        pipeline <- Github.fetchRemotePipeline info
+        let step = Github.createCloneStep info
+        number <-
+          handler.queueJob info $ 
+            pipeline
+              { steps = NonEmpty.cons step pipeline.steps
+              }
+        Logger.infoM "HASCI.server" $ "Queued job" <> Core.displayBuildNumber number
+        pure number
+
       Scotty.json $
         Aeson.object
           [ ("number", Aeson.toJSON $ Core.buildNumberToInt number)
