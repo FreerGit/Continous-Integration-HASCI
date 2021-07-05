@@ -11,6 +11,7 @@ import qualified RIO.Map as Map
 import qualified Network.HTTP.Types as HTTP.Types
 import qualified Network.Wai.Middleware.Cors as Cors
 import qualified System.Log.Logger as Logger
+import qualified RIO.Text as Text
 import qualified JobHandler
 import qualified Github
 
@@ -64,7 +65,7 @@ run config handler =
           Just jobFound -> pure jobFound
       Scotty.json $ jobToJSON number job
 
-    Scotty.get "/bulid/:number/step/:step/logs" do
+    Scotty.get "/build/:number/step/:step/logs" do
       number <- fmap BuildNumber (Scotty.param "number")
       step <- fmap StepName (Scotty.param "step")
       log <- Scotty.liftAndCatchIO $ handler.fetchLogs number step
