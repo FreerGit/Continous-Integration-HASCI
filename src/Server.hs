@@ -9,6 +9,7 @@ import qualified Data.Aeson as Aeson
 import qualified RIO.NonEmpty as NonEmpty
 import qualified RIO.Map as Map
 import qualified Network.HTTP.Types as HTTP.Types
+import qualified Network.Wai.Middleware.Cors as Cors
 import qualified JobHandler
 import qualified Github
 
@@ -20,6 +21,7 @@ data Config
 run :: Config -> JobHandler.Service -> IO ()
 run config handler = 
   Scotty.scotty config.port do
+    Scotty.middleware Cors.simpleCors
 
     Scotty.post "/agent/pull" do
       cmd <- Scotty.liftAndCatchIO do
