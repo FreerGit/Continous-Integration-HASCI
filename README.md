@@ -23,7 +23,10 @@ Lets queue a job:
 This will send the example github pushEvent located locally under the test folder, it will pull a .hasci.yml file from my repo https://github.com/FreerGit/HASCI-pipeline-test
 and build/execute it.
 
-For this to work you obviously need a running docker daemon, the server will clean up all volumes/containers after the build is finished.
+For this to work you obviously need a running docker daemon, to cleanup the images and containers run:
+
+```stack run -- cleanup-docker``` 
+
 
 You can use any .yml file you wish, by default the server will look for a .hasci.yml file though.
 
