@@ -47,6 +47,11 @@ main = Butcher.mainFromCmdParserWithHelpDesc $ \helpDesc -> do
       let config = Agent.Config { endpoint = endpoint
                                 , name = Agent.Name name } 
       runCommand $ StartAgent config
+  
+  Butcher.addCmd "cleanup-docker" do
+    Butcher.addCmdSynopsis "cleanup docker container/images"
+    Butcher.addCmdImpl do
+      Docker.cleanupDocker
 
 
 runCommand :: Command -> IO ()

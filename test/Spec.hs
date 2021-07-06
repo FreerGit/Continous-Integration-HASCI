@@ -10,6 +10,7 @@ import qualified RIO.Map as Map
 import qualified RIO.Set as Set
 import qualified Data.Yaml as Yaml
 import qualified Control.Concurrent.Async as Async
+import qualified System.Process.Typed as Process
 import qualified Data.Aeson as Aeson
 import qualified Network.HTTP.Simple as HTTP
 import qualified RIO.HashMap as HashMap
