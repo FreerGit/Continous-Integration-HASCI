@@ -1,0 +1,5 @@
+steps:
+  - name: run tests
+    image: haskell:8
+    commands:
+      - stack test
