@@ -53,7 +53,6 @@ main = Butcher.mainFromCmdParserWithHelpDesc $ \helpDesc -> do
     Butcher.addCmdImpl do
       Docker.cleanupDocker
 
-
 runCommand :: Command -> IO ()
 runCommand = \case
   StartServer config -> do
