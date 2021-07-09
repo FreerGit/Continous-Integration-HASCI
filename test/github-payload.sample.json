@@ -1,15 +1,210 @@
-{
-  "ref": "refs/heads/main",
-  "repository": {
-    "id": 7451946651,
-    "name": "HASCI-pipeline-test",
-    "full_name": "FreerGit/HASCI-pipeline-test"
+[
+  {
+    "id": "17030718845",
+    "type": "PushEvent",
+    "actor": {
+      "id": 42868792,
+      "login": "FreerGit",
+      "display_login": "FreerGit",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/FreerGit",
+      "avatar_url": "https://avatars.githubusercontent.com/u/42868792?"
+    },
+    "repo": {
+      "id": 382691316,
+      "name": "FreerGit/HASCI-pipeline-test",
+      "url": "https://api.github.com/repos/FreerGit/HASCI-pipeline-test"
+    },
+    "payload": {
+      "push_id": 7454291849,
+      "size": 1,
+      "distinct_size": 1,
+      "ref": "refs/heads/main",
+      "head": "3c8aaab3bf66f3e213f658a43dfdfdb4ba1a0c05",
+      "before": "f4a6fb861374e81be45a83d9ee77c5225e3b66a3",
+      "commits": [
+        {
+          "sha": "3c8aaab3bf66f3e213f658a43dfdfdb4ba1a0c05",
+          "author": {
+            "email": "fredrik-98@live.se",
+            "name": "FreerGit"
+          },
+          "message": "fix: filename",
+          "distinct": true,
+          "url": "https://api.github.com/repos/FreerGit/HASCI-pipeline-test/commits/3c8aaab3bf66f3e213f658a43dfdfdb4ba1a0c05"
+        }
+      ]
+    },
+    "public": true,
+    "created_at": "2021-07-04T14:02:16Z"
   },
-  "head_commit": {
-    "id": "main",
-    "message": "Update README.md",
-    "author": {
-      "username": "FreerGit"
-    }
+  {
+    "id": "17030694413",
+    "type": "PushEvent",
+    "actor": {
+      "id": 42868792,
+      "login": "FreerGit",
+      "display_login": "FreerGit",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/FreerGit",
+      "avatar_url": "https://avatars.githubusercontent.com/u/42868792?"
+    },
+    "repo": {
+      "id": 382691316,
+      "name": "FreerGit/HASCI-pipeline-test",
+      "url": "https://api.github.com/repos/FreerGit/HASCI-pipeline-test"
+    },
+    "payload": {
+      "push_id": 7454276414,
+      "size": 1,
+      "distinct_size": 1,
+      "ref": "refs/heads/main",
+      "head": "f4a6fb861374e81be45a83d9ee77c5225e3b66a3",
+      "before": "c76d081976b52728a1ab3664863ac2a6e5a845c4",
+      "commits": [
+        {
+          "sha": "f4a6fb861374e81be45a83d9ee77c5225e3b66a3",
+          "author": {
+            "email": "fredrik-98@live.se",
+            "name": "FreerGit"
+          },
+          "message": "feat: fast test for ci file",
+          "distinct": true,
+          "url": "https://api.github.com/repos/FreerGit/HASCI-pipeline-test/commits/f4a6fb861374e81be45a83d9ee77c5225e3b66a3"
+        }
+      ]
+    },
+    "public": true,
+    "created_at": "2021-07-04T13:56:46Z"
+  },
+  {
+    "id": "17027184340",
+    "type": "PushEvent",
+    "actor": {
+      "id": 42868792,
+      "login": "FreerGit",
+      "display_login": "FreerGit",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/FreerGit",
+      "avatar_url": "https://avatars.githubusercontent.com/u/42868792?"
+    },
+    "repo": {
+      "id": 382691316,
+      "name": "FreerGit/HASCI-pipeline-test",
+      "url": "https://api.github.com/repos/FreerGit/HASCI-pipeline-test"
+    },
+    "payload": {
+      "push_id": 7452009454,
+      "size": 1,
+      "distinct_size": 1,
+      "ref": "refs/heads/main",
+      "head": "c76d081976b52728a1ab3664863ac2a6e5a845c4",
+      "before": "f0859b49d1700964fa18a7463412d75d4440b367",
+      "commits": [
+        {
+          "sha": "c76d081976b52728a1ab3664863ac2a6e5a845c4",
+          "author": {
+            "email": "fredrik-98@live.se",
+            "name": "FreerGit"
+          },
+          "message": "test: add hasci ci file",
+          "distinct": true,
+          "url": "https://api.github.com/repos/FreerGit/HASCI-pipeline-test/commits/c76d081976b52728a1ab3664863ac2a6e5a845c4"
+        }
+      ]
+    },
+    "public": true,
+    "created_at": "2021-07-03T19:34:17Z"
+  },
+  {
+    "id": "17027089889",
+    "type": "PushEvent",
+    "actor": {
+      "id": 42868792,
+      "login": "FreerGit",
+      "display_login": "FreerGit",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/FreerGit",
+      "avatar_url": "https://avatars.githubusercontent.com/u/42868792?"
+    },
+    "repo": {
+      "id": 382691316,
+      "name": "FreerGit/HASCI-pipeline-test",
+      "url": "https://api.github.com/repos/FreerGit/HASCI-pipeline-test"
+    },
+    "payload": {
+      "push_id": 7451946651,
+      "size": 1,
+      "distinct_size": 1,
+      "ref": "refs/heads/main",
+      "head": "f0859b49d1700964fa18a7463412d75d4440b367",
+      "before": "f9fdd80b92259d30a75b51e3a7507d80ee188aa1",
+      "commits": [
+        {
+          "sha": "f0859b49d1700964fa18a7463412d75d4440b367",
+          "author": {
+            "email": "fredrier@axis.com",
+            "name": "Fredrik Eriksson"
+          },
+          "message": "Update README.md",
+          "distinct": true,
+          "url": "https://api.github.com/repos/FreerGit/HASCI-pipeline-test/commits/f0859b49d1700964fa18a7463412d75d4440b367"
+        }
+      ]
+    },
+    "public": true,
+    "created_at": "2021-07-03T19:05:53Z"
+  },
+  {
+    "id": "17027086484",
+    "type": "CreateEvent",
+    "actor": {
+      "id": 42868792,
+      "login": "FreerGit",
+      "display_login": "FreerGit",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/FreerGit",
+      "avatar_url": "https://avatars.githubusercontent.com/u/42868792?"
+    },
+    "repo": {
+      "id": 382691316,
+      "name": "FreerGit/symmetrical-garbanzo",
+      "url": "https://api.github.com/repos/FreerGit/symmetrical-garbanzo"
+    },
+    "payload": {
+      "ref": "main",
+      "ref_type": "branch",
+      "master_branch": "main",
+      "description": "Look at my repo Continuous-Integration-HASCI for the CI-server, this repo is to test end-to-end functionality of the server.",
+      "pusher_type": "user"
+    },
+    "public": true,
+    "created_at": "2021-07-03T19:04:58Z"
+  },
+  {
+    "id": "17027086437",
+    "type": "CreateEvent",
+    "actor": {
+      "id": 42868792,
+      "login": "FreerGit",
+      "display_login": "FreerGit",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/FreerGit",
+      "avatar_url": "https://avatars.githubusercontent.com/u/42868792?"
+    },
+    "repo": {
+      "id": 382691316,
+      "name": "FreerGit/symmetrical-garbanzo",
+      "url": "https://api.github.com/repos/FreerGit/symmetrical-garbanzo"
+    },
+    "payload": {
+      "ref": null,
+      "ref_type": "repository",
+      "master_branch": "main",
+      "description": "Look at my repo Continuous-Integration-HASCI for the CI-server, this repo is to test end-to-end functionality of the server.",
+      "pusher_type": "user"
+    },
+    "public": true,
+    "created_at": "2021-07-03T19:04:57Z"
   }
-}
+]

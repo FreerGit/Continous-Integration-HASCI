@@ -44,8 +44,6 @@ main = hspec do
       it "should process github webhook" do
         testWebhookTrigger runner
 
-
-
 makeStep :: Text -> Text -> [Text] -> Step
 makeStep name image commands =
   Step

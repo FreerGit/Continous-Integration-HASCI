@@ -18,7 +18,10 @@ Run these in seperate terminals, you now have one server that can delegate work 
 
 Lets queue a job:
 
-```curl -X POST -H "Content-Type: application/json" -d @test/github-payload.sample.json "http://localhost:9000/webhook/github"```
+```curl -X POST -H "Content-Type: application/json" -d "$(curl -X GET https://api.github.com/repos/freergit/continous-integration-hasci/events)" "http://localhost:9000/webhook/github"```
+
+The above command fetches the most recent pushEvents from this repo, sends it to the server who then queues the job. You may of course give other pushEvents from another repo if you wish. Remember to have a .hasci.yml file in the repo though!
+
 
 This will send the example github pushEvent located locally under the test folder, it will pull a .hasci.yml file from my repo https://github.com/FreerGit/HASCI-pipeline-test
 and build/execute it.

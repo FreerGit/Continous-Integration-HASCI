@@ -42,6 +42,7 @@ library
     , http-client
     , http-conduit
     , http-types
+    , lens-aeson
     , network
     , record-hasfield
     , rio
@@ -79,6 +80,7 @@ executable HASCI
     , http-client
     , http-conduit
     , http-types
+    , lens-aeson
     , network
     , record-hasfield
     , rio
@@ -118,6 +120,7 @@ test-suite hasci-test
     , http-client
     , http-conduit
     , http-types
+    , lens-aeson
     , network
     , record-hasfield
     , rio
