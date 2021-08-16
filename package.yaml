@@ -32,6 +32,8 @@ dependencies:
 
 ghc-options:
 - -F -pgmF=record-dot-preprocessor
+- -Wall
+- -Werror
 
 library:
   source-dirs: src

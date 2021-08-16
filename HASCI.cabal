@@ -32,7 +32,7 @@ library
       NoImplicitPrelude
       OverloadedStrings
       StrictData
-  ghc-options: -F -pgmF=record-dot-preprocessor
+  ghc-options: -F -pgmF=record-dot-preprocessor -Wall -Werror
   build-depends:
       aeson
     , aeson-schemas
@@ -69,7 +69,7 @@ executable HASCI
       NoImplicitPrelude
       OverloadedStrings
       StrictData
-  ghc-options: -F -pgmF=record-dot-preprocessor -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -F -pgmF=record-dot-preprocessor -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HASCI
     , aeson
@@ -108,7 +108,7 @@ test-suite hasci-test
       NoImplicitPrelude
       OverloadedStrings
       StrictData
-  ghc-options: -F -pgmF=record-dot-preprocessor -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -F -pgmF=record-dot-preprocessor -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HASCI
     , aeson

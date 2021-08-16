@@ -39,7 +39,7 @@ run config handler =
     Scotty.post "/webhook/github" do
       body <- Scotty.body
       number <- Scotty.liftAndCatchIO do
-        info <- Github.parsePushEvent (toStrictBytes body)
+        info <- Github.parsePushEvent body
         pipeline <- Github.fetchRemotePipeline info
         let step = Github.createCloneStep info
         number <-

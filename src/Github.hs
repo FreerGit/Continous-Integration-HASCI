@@ -5,19 +5,18 @@ module Github where
 
 import RIO
 import Core
-import Data.Aeson ((.:))
 import Data.Aeson.Schema
 
 import qualified Data.Aeson as Aeson
-import qualified Data.Aeson.Types as Aeson.Types
 import qualified Data.Yaml as Yaml
 import qualified Network.HTTP.Simple as HTTP
 import qualified RIO.NonEmpty.Partial as NE
 import qualified RIO.Text as Text
-import qualified RIO.ByteString as BS
-import qualified RIO.Lens as Lens
+import qualified RIO.ByteString.Lazy as LBS
+import qualified RIO.List.Partial as List
 import qualified JobHandler
 import qualified Docker
+
 
 type CommitSchema = [schema|
   {
@@ -38,23 +37,21 @@ type CommitSchema = [schema|
   }
 |]
 
--- Small note for myself:
--- It is possible to create data structures with ONLY the fields i want
--- And let Aeson.fromJSON take care of it = no need  to quasiqouters
--- However, it's terser and from the tests i've done, equally as fast
--- I would like to force aeson to only parse the first occurance though
--- Cant find a way to do that however
-parsePushEvent :: ByteString -> IO JobHandler.CommitInfo    
+-- Note to self: I use lazy BS here because i thought it would speed up the parsing
+-- since i only want the first element either way, there seems to be a slight difference
+-- but not noticable from my tests. Forcing Aeson to only do @one@ successful parse 
+-- would be perfect, unsure how though.
+parsePushEvent :: LBS.ByteString -> IO JobHandler.CommitInfo    
 parsePushEvent bs = do 
-  body <- case Aeson.eitherDecodeStrict bs :: Either String [Object CommitSchema] of
+  body <- case Aeson.eitherDecode bs :: Either String [Object CommitSchema] of
     Left _ -> fail "No commits"
     Right x -> return x
-  let info = ( NE.fromList [get| body[] |] ) NE.!! 0
-  let firstCommit =  ( NE.fromList [get| info.payload.commits! |] ) NE.!! 0
+  let info = List.head [get| body[] |] 
+  let firstCommit =  List.head [get| info.payload.commits! |]
   pure JobHandler.CommitInfo
-                  { sha =  [get| info.payload.head! |]
+                  { sha = fromMaybe "" [get| info.payload.head|]
                   , repo = [get| info.repo.name|]
-                  , branch = Text.dropPrefix "refs/heads/" [get| info.payload.ref! |]
+                  , branch = Text.dropPrefix "refs/heads/" (fromMaybe "" [get| info.payload.ref|])
                   , message = [get| firstCommit.message|]
                   , author = [get| firstCommit.author.name|]
                   }
