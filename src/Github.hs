@@ -12,7 +12,7 @@ import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.Types as Aeson.Types
 import qualified Data.Yaml as Yaml
 import qualified Network.HTTP.Simple as HTTP
-import qualified RIO.NonEmpty.Partial as NonEmpty.Partial
+import qualified RIO.NonEmpty.Partial as NE
 import qualified RIO.Text as Text
 import qualified RIO.ByteString as BS
 import qualified RIO.Lens as Lens
@@ -44,8 +44,8 @@ parsePushEvent bs = do
   body <- case Aeson.eitherDecodeStrict bs :: Either String [Object CommitSchema] of
     Left _ -> fail "No commits"
     Right x -> return x
-  let info = ( NonEmpty.Partial.fromList [get| body[] |] ) NonEmpty.Partial.!! 0
-  let firstCommit =  ( NonEmpty.Partial.fromList [get| info.payload.commits! |] ) NonEmpty.Partial.!! 0
+  let info = ( NE.fromList [get| body[] |] ) NE.!! 0
+  let firstCommit =  ( NE.fromList [get| info.payload.commits! |] ) NE.!! 0
   pure JobHandler.CommitInfo
                   { sha = fromMaybe "" [get| info.payload.head|]
                   , repo = [get| info.repo.name|]
@@ -72,7 +72,7 @@ fetchRemotePipeline info = do
 createCloneStep :: JobHandler.CommitInfo -> Step
 createCloneStep info = Step
   { name = StepName "clone"
-  , commands = NonEmpty.Partial.fromList
+  , commands = NE.fromList
     [ "git clone -q https://github.com/" <> info.repo <> " ."
     , "git checkout -qf " <> info.sha
     ]
