@@ -19,7 +19,6 @@ import qualified RIO.Lens as Lens
 import qualified JobHandler
 import qualified Docker
 
-
 type CommitSchema = [schema|
   {
     repo: {
@@ -39,7 +38,13 @@ type CommitSchema = [schema|
   }
 |]
 
-parsePushEvent :: ByteString -> IO JobHandler.CommitInfo
+-- Small note for myself:
+-- It is possible to create data structures with ONLY the fields i want
+-- And let Aeson.fromJSON take care of it = no need  to quasiqouters
+-- However, it's terser and from the tests i've done, equally as fast
+-- I would like to force aeson to only parse the first occurance though
+-- Cant find a way to do that however
+parsePushEvent :: ByteString -> IO JobHandler.CommitInfo    
 parsePushEvent bs = do 
   body <- case Aeson.eitherDecodeStrict bs :: Either String [Object CommitSchema] of
     Left _ -> fail "No commits"
@@ -47,9 +52,9 @@ parsePushEvent bs = do
   let info = ( NE.fromList [get| body[] |] ) NE.!! 0
   let firstCommit =  ( NE.fromList [get| info.payload.commits! |] ) NE.!! 0
   pure JobHandler.CommitInfo
-                  { sha = fromMaybe "" [get| info.payload.head|]
+                  { sha =  [get| info.payload.head! |]
                   , repo = [get| info.repo.name|]
-                  , branch = Text.dropPrefix "refs/heads/" (fromMaybe "" [get| info.payload.ref|])
+                  , branch = Text.dropPrefix "refs/heads/" [get| info.payload.ref! |]
                   , message = [get| firstCommit.message|]
                   , author = [get| firstCommit.author.name|]
                   }
