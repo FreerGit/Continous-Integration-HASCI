@@ -18,7 +18,7 @@ data Hooks
     }
 
 createService :: Docker.Service -> IO Service
-createService docker = do
+createService docker = 
   pure Service
     { runBuild = runBuild_ docker
     , prepareBuild = prepareBuild_ docker

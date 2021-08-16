@@ -28,7 +28,7 @@ dependencies:
 - typed-process
 - wai-cors
 - yaml
-- lens-aeson
+- aeson-schemas
 
 ghc-options:
 - -F -pgmF=record-dot-preprocessor

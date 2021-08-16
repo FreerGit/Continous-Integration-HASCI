@@ -35,6 +35,7 @@ library
   ghc-options: -F -pgmF=record-dot-preprocessor
   build-depends:
       aeson
+    , aeson-schemas
     , async
     , base
     , butcher
@@ -42,7 +43,6 @@ library
     , http-client
     , http-conduit
     , http-types
-    , lens-aeson
     , network
     , record-hasfield
     , rio
@@ -73,6 +73,7 @@ executable HASCI
   build-depends:
       HASCI
     , aeson
+    , aeson-schemas
     , async
     , base
     , butcher
@@ -80,7 +81,6 @@ executable HASCI
     , http-client
     , http-conduit
     , http-types
-    , lens-aeson
     , network
     , record-hasfield
     , rio
@@ -112,6 +112,7 @@ test-suite hasci-test
   build-depends:
       HASCI
     , aeson
+    , aeson-schemas
     , async
     , base
     , butcher
@@ -120,7 +121,6 @@ test-suite hasci-test
     , http-client
     , http-conduit
     , http-types
-    , lens-aeson
     , network
     , record-hasfield
     , rio

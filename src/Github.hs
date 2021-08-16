@@ -1,8 +1,12 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE QuasiQuotes #-}
+
 module Github where
 
 import RIO
 import Core
 import Data.Aeson ((.:))
+import Data.Aeson.Schema
 
 import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.Types as Aeson.Types
@@ -10,32 +14,45 @@ import qualified Data.Yaml as Yaml
 import qualified Network.HTTP.Simple as HTTP
 import qualified RIO.NonEmpty.Partial as NonEmpty.Partial
 import qualified RIO.Text as Text
+import qualified RIO.ByteString as BS
 import qualified RIO.Lens as Lens
-import qualified Data.Aeson.Lens as Lens
 import qualified JobHandler
 import qualified Docker
 
+
+type CommitSchema = [schema|
+  {
+    repo: {
+      name: Text,
+    },
+    payload: {
+      ref: Maybe Text,
+      head: Maybe Text,
+      commits: Maybe List {
+        sha: Text,
+        author: {
+          name: Text,
+        },
+        message: Text,
+      },
+    },
+  }
+|]
+
 parsePushEvent :: ByteString -> IO JobHandler.CommitInfo
-parsePushEvent body = pure 
-  JobHandler.CommitInfo
-    { sha = body ^. sha
-    , repo = body ^. repoName
-    , branch = dropPrefix $ body ^. branch
-    , message = body ^. message
-    , author = body ^. author
-    }
-  where
-    firstEvent = Lens.nth 0
-    payload = firstEvent . Lens.key "payload"
-    repo = firstEvent . Lens.key "repo"
-    sha = payload . Lens.key "head" . Lens._String
-    repoName = repo . Lens.key "name" . Lens._String
-    branch = payload . Lens.key "ref" . Lens._String
-    dropPrefix = Text.dropPrefix "refs/heads/"
-    commits = payload . Lens.key "commits" . Lens.nth 0
-    message = commits . Lens.key "message" . Lens._String
-    author = commits . Lens.key "author" 
-        . Lens.key "name" . Lens._String
+parsePushEvent bs = do 
+  body <- case Aeson.eitherDecodeStrict bs :: Either String [Object CommitSchema] of
+    Left _ -> fail "No commits"
+    Right x -> return x
+  let info = ( NonEmpty.Partial.fromList [get| body[] |] ) NonEmpty.Partial.!! 0
+  let firstCommit =  ( NonEmpty.Partial.fromList [get| info.payload.commits! |] ) NonEmpty.Partial.!! 0
+  pure JobHandler.CommitInfo
+                  { sha = fromMaybe "" [get| info.payload.head|]
+                  , repo = [get| info.repo.name|]
+                  , branch = Text.dropPrefix "refs/heads/" (fromMaybe "" [get| info.payload.ref|])
+                  , message = [get| firstCommit.message|]
+                  , author = [get| firstCommit.author.name|]
+                  }
 
 fetchRemotePipeline :: JobHandler.CommitInfo -> IO Pipeline
 fetchRemotePipeline info = do
